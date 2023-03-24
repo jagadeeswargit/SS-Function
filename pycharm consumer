@@ -1,0 +1,7 @@
+import main
+
+print("Hello from main()")
+pdf_content = """Paracetamol is exactly the same drug as acetaminophen (Tylenol). Paracetamol is the drug's name assigned using the International Nonproprietary Name (INN) generic name system. Paracetamol is the name used for the drug in places such as Europe, Australia, New Zealand and India. Acetaminophen is the generic name assigned using the United States Adopted Names (USAN) system. Acetaminophen is the name used in countries such as the US, Canada and Japan. Usually the INN and USAN generic names for a drug are the same and don't differ between countries."""
+
+query = "is it same as acetaminophen?"
+main.process_request(pdf_content, query)
