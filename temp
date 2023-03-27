@@ -1,0 +1,15 @@
+const [noOffsentence, setNoOffsentence] = useState(0);
+				
+				
+				const handleNoOffsentence = (e) => {
+				let noOffsentence = e.target.value;
+				setNoOffsentence(noOffsentence);
+				};
+				
+				style={{ marginTop: -70 }}
+				
+				<div className="d-flex justify-content-center">
+					<div>
+						<h1 style={{ color: "#5a2e6f" }}>Heading 1</h1>
+						
+				<h1 style={{ color: "#5a2e6f" }}>Heading 1</h1>
