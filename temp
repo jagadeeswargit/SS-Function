@@ -13,3 +13,11 @@ const [noOffsentence, setNoOffsentence] = useState(0);
 						<h1 style={{ color: "#5a2e6f" }}>Heading 1</h1>
 						
 				<h1 style={{ color: "#5a2e6f" }}>Heading 1</h1>
+
+
+<input
+              style={{ marginTop: 10 }}
+              type={"number"}
+              placeholder="No. of Sentence"
+              onChange={handleNoOffsentence}
+            ></input>
