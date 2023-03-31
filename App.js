@@ -88,7 +88,8 @@ function App() {
         body:JSON.stringify({
             pdfContent:"test",
             myQuery:value,
-            noOfRecords:noOfRecords
+            noOfRecords:noOfRecords,
+            pdfUrl: "test"
         })
         });
       const json = await res.text();
