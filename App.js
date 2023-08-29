@@ -1,12 +1,19 @@
 import * as pdfjsLib from "pdfjs-dist";
 import React, { useState } from "react";
-import ProgressBar from "react-customizable-progressbar"; 
+import ProgressBar from "react-customizable-progressbar";
+import { BsFillTrashFill } from "react-icons/bs";
 import "./App.css";
 const BASE64_MARKER = ";base64,";
 let sliderTimer = null;
 let number = 1;
+let seletedFilePos = -1;
+
+let addNewClickCount = 0;
+const nameSplit = "&&&&";
+
 function App() {
   const [isActive, setIsActive] = useState(true);
+  const [isLogin, setIsLogin] = useState(true);
   const [response, setisResponse] = useState(false);
   const [value, setValue] = useState("");
   const [user, setUser] = useState([]);
@@ -18,6 +25,15 @@ function App() {
   const [progressBar, setShowProgessbar] = useState(false);
   const [isUploadFile, setUploadFile] = useState(true);
   const [pdfUrl, setPdfUrl] = useState("");
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
+
+  //New
+  const [isView2, setView2] = useState(false);
+  const [isView3, setView3] = useState(false);
+  const ref2 = React.createRef();
+  const ref3 = React.createRef();
+
 
   const handleChange = (event) => {
     setValue(event.target.value);
@@ -36,66 +52,81 @@ function App() {
   };
 
   const postData = async () => {
-    try {
-      
-      startTimer();
-      setShowProgessbar(true);
-      serPregressMsg("Getting Trained on Prescription.");
-      let url = `https://myglobalssfunction.azurewebsites.net/api/httptrigger2`;
-      console.log("no of records are"+noOfRecords);
-      const res = await fetch(url,
-        {method:"post",
-        body:JSON.stringify({
-            pdfContent:isUploadFile?pagesText[0]:"test",
-            myQuery:"test",
-            noOfRecords:Number(noOfRecords),
-            pdfUrl:!isUploadFile?pdfUrl:"test"
-        })
-        });
-      console.log(res.status);
-      if (res.status === 200) {
-        // const json = await res.text();
-        setIsActive(false);
-      } else {
-        setPdfFileError("");
-      }
-      setShowProgessbar(false);
-    } catch (err) {
-      console.error("err", err);
-      setShowProgessbar(false);
-      clearInterval(sliderTimer);
-    }
+    console.log("pagesText  - - " + JSON.stringify(pagesText));
+
+    // try {
+    //   startTimer();
+    //   setShowProgessbar(true);
+    //   serPregressMsg("Getting Trained on Prescription.");
+    //   let url = `https://myglobalssfunction.azurewebsites.net/api/httptrigger2`;
+    //   console.log("no of records are" + noOfRecords);
+    //   const res = await fetch(url, {
+    //     method: "post",
+    //     body: JSON.stringify({
+    //        pdfContent: isUploadFile ? pagesText[0] : "test",
+    //       myQuery: "test",
+    //       noOfRecords: Number(noOfRecords),
+    //       pdfUrl: !isUploadFile ? pdfUrl : "test",
+    //     }),
+    //   });
+    //   console.log(res.status);
+    //   if (res.status === 200) {
+    //     // const json = await res.text();
+    //     setIsActive(false);
+    //   } else {
+    //     setPdfFileError("");
+    //   }
+    //   setShowProgessbar(false);
+    // } catch (err) {
+    //   console.error("err", err);
+    //   setShowProgessbar(false);
+    //   clearInterval(sliderTimer);
+    // }
   };
 
   const handleNoOfRecords = (e) => {
     let noOfRecords = e.target.value;
     setNoOfSentences(noOfRecords);
-    };
-    
+  };
+  const handleUserId = (e) => {
+    let value = e.target.value;
+    setUserId(value);
+  };
+  const handlePassword = (e) => {
+    let value = e.target.value;
+    setPassword(value);
+  };
+  const handleLoginClick = () => {
+    console.log("password - ", password, userId);
+    if (userId === "test" && password === "1234") {
+      setIsLogin(false);
+    } else {
+      alert("User ID or password incorrect");
+    }
+  };
 
   const fetchData = async () => {
     try {
-      number =1;
+      number = 1;
       startTimer();
       setUser([]);
       setisResponse(false);
       setShowProgessbar(true);
       serPregressMsg("Retrieving Answer");
       let url = `https://myglobalssfunction.azurewebsites.net/api/httptrigger2`;
-      console.log("PDF Text is"+ pagesText[0]);
-      const res = await fetch(url,
-        {method:"post",
-        body:JSON.stringify({
-            pdfContent:"test",
-            myQuery:value,
-            noOfRecords:noOfRecords,
-            pdfUrl: "test"
-        })
-        });
+      console.log("PDF Text is" + pagesText[0]);
+      const res = await fetch(url, {
+        method: "post",
+        body: JSON.stringify({
+          pdfContent: "test",
+          myQuery: value,
+          noOfRecords: noOfRecords,
+        }),
+      });
       const json = await res.text();
       setIsActive(false);
       let myResponse = "";
-      myResponse = json.toString().split('DDDDDD');
+      myResponse = json.toString().split("DDDDDD");
       setUser(myResponse);
       setisResponse(true);
       setShowProgessbar(false);
@@ -111,23 +142,38 @@ function App() {
   };
   // onchange event
   const fileType = ["application/pdf"];
+
+  const handlePdfFileChange1 = (e) => {
+    seletedFilePos = 1;
+    handlePdfFileChange(e);
+  };
+  const handlePdfFileChange2 = (e) => {
+    seletedFilePos = 2;
+    handlePdfFileChange(e);
+  };
+  const handlePdfFileChange3 = (e) => {
+    seletedFilePos = 3;
+    handlePdfFileChange(e);
+  };
+  
   const handlePdfFileChange = (e) => {
     let selectedFile = e.target.files[0];
     if (selectedFile) {
-      if (selectedFile && fileType.includes(selectedFile.type)) {
+      if (fileType.includes(selectedFile.type)) {
         let reader = new FileReader();
         reader.readAsDataURL(selectedFile);
         reader.onloadend = (e) => {
-          convertDataURIToBinary(e.target.result);
+          convertDataURIToBinary(e.target.result,  selectedFile.name);
         };
       } else {
-        setPdfFileError("Please select valid pdf file");
+        e.currentTarget.value = null;
+        alert("Please select valid pdf file");
       }
     } else {
       console.log("select your file");
     }
   };
-  const convertDataURIToBinary = (dataURI) => {
+  const convertDataURIToBinary = (dataURI,selectedFileName) => {
     let base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
     let base64 = dataURI.substring(base64Index);
     let raw = window.atob(base64);
@@ -137,10 +183,10 @@ function App() {
     for (let i = 0; i < rawLength; i++) {
       array[i] = raw.charCodeAt(i);
     }
-    pdfAsArray(array);
+    pdfAsArray(array,selectedFileName);
   };
 
-  const pdfAsArray = (pdfAsArray) => {
+  const pdfAsArray = (pdfAsArray,selectedFileName) => {
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
 
@@ -156,8 +202,17 @@ function App() {
         }
 
         // Execute all the promises
-        Promise.all(pagesPromises).then(function (pagesText) {
-          setTagesText(pagesText);
+        Promise.all(pagesPromises).then(function (pagetest) {
+          let updatePageText = selectedFileName + nameSplit + pagetest;
+          let tempItemArr = pagesText;
+          if (seletedFilePos === 1) {
+            tempItemArr.splice(0, 1, updatePageText);
+          } else if (seletedFilePos === 2) {
+            tempItemArr.splice(1, 1, updatePageText);
+          } else if (seletedFilePos === 3) {
+            tempItemArr.splice(2, 1, updatePageText);
+          }
+          setTagesText(tempItemArr);
           setPdfFileError("");
         });
       },
@@ -203,6 +258,55 @@ function App() {
       }
     }, 500);
   };
+  const addNewClick = () => {
+    if (addNewClickCount >= 2) {
+      console.log("return");
+      return;
+    }
+    addNewClickCount++;
+    if (addNewClickCount === 1) {
+      setView2(true);
+    }
+    if (addNewClickCount === 2) {
+      setView3(true);
+    }
+  };
+  const removeView2 = () => {
+    try {
+      const currentFileName = ref2.current.files[0].name;
+      let index = pagesText?.findIndex(
+        (value) => value.split(nameSplit)[0] === currentFileName
+      );
+      if (index > -1) {
+        // only splice array when item is found
+        pagesText.splice(index, 1);
+        setTagesText(pagesText);
+        addNewClickCount = 0;
+        setView2(false);
+      }
+    } catch (error) {
+      addNewClickCount = 0;
+      setView2(false);
+    }
+  };
+  const removeView3 = () => {
+    try {
+      const currentFileName = ref3.current.files[0].name;
+      let index = pagesText?.findIndex(
+        (value) => value.split(nameSplit)[0] === currentFileName
+      );
+      if (index > -1) {
+        // only splice array when item is found
+        pagesText.splice(index, 1);
+        setTagesText(pagesText);
+        --addNewClickCount;
+        setView3(false);
+      }
+    } catch (error) {
+      --addNewClickCount;
+      setView3(false);
+    }
+  };
   return (
     <div>
       <div className="My header">
@@ -210,29 +314,70 @@ function App() {
       </div>
       {progressBar ? (
         <div>
-        <ProgressBar
-          className="indicator"
-          progress={showOtpTime}
-          radius={50}
-          strokeWidth={10}
-          initialAnimation={true}
-          strokeColor="#5a2e6f"
-        />
-        <h6
-          className="d-flex justify-content-center color"
-          style={{ color: "#5a2e6f" }}
-        >
-          {progressMsg}
-        </h6>
-      </div>
+          <ProgressBar
+            className="indicator"
+            progress={showOtpTime}
+            radius={50}
+            strokeWidth={10}
+            initialAnimation={true}
+            strokeColor="#5a2e6f"
+          />
+          <h6
+            className="d-flex justify-content-center color"
+            style={{ color: "#5a2e6f" }}
+          >
+            {progressMsg}
+          </h6>
+        </div>
       ) : null}
-      ;
-      {isActive ? (
+      {isLogin ? (
         <div className="d-flex justify-content-center">
-        <div className="borderStyle">
-        <h1 style={{ color: "#5a2e6f", marginBottom: 20 }}>Ask Me Anything</h1>
-            <h6 style={{ color: "#5a2e6f", marginBottom: 20 }}>You can upload any pdf file and Ask me questions on that in natural Language</h6>
-        <div onChange={handleChangeRadio}>
+          <div className="borderStyle">
+            <h1 style={{ color: "#5a2e6f", marginBottom: 20 }}>Login</h1>
+            <div>
+              <input
+                style={{ marginTop: 10, width: 300 }}
+                placeholder="Enter userId"
+                onChange={handleUserId}
+              ></input>
+            </div>
+            <div>
+              <input
+                style={{ marginTop: 10, width: 300 }}
+                type={"password"}
+                placeholder="Enter password"
+                onChange={handlePassword}
+              ></input>
+            </div>
+            <div
+              style={{
+                textAlign: "center",
+                marginTop: 20,
+              }}
+            >
+              <button
+                onClick={handleLoginClick}
+                className="button"
+                type="button"
+                id="button"
+                name="Submit"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : isActive ? (
+        <div className="d-flex justify-content-center">
+          <div className="borderStyle">
+            <h1 style={{ color: "#5a2e6f", marginBottom: 20 }}>
+              Ask Me Anything
+            </h1>
+            <h6 style={{ color: "#5a2e6f", marginBottom: 20 }}>
+              You can upload any pdf file and Ask me questions on that in
+              natural Language
+            </h6>
+            <div onChange={handleChangeRadio}>
               <input
                 type="radio"
                 className="form-check-input"
@@ -255,13 +400,42 @@ function App() {
             </div>
             {isUploadFile ? (
               <div>
-                {/* <h6 style={{ marginBottom: 20 }}>PLEASE UPLOAD FILE</h6> */}
-                <input type={"file"} onChange={handlePdfFileChange}></input>
-                {pdfFileError && (
-                  <div className="error-msg">{pdfFileError}</div>
-                )}
+                <div className="padding">
+                  <input type={"file"} onChange={handlePdfFileChange1}></input>
+                  <button
+                    onClick={addNewClick}
+                    className="addnewbutton"
+                    type="button"
+                    id="button"
+                    name="addnew"
+                  >
+                    Add more files
+                  </button>
+                </div>
+
+                {isView2 ? (
+                  <div className="padding">
+                    <input
+                      ref={ref2}
+                      type={"file"}
+                      onChange={handlePdfFileChange2}
+                    ></input>
+                    <BsFillTrashFill className="margin" onClick={removeView2} />
+                  </div>
+                ) : null}
+
+                {isView3 ? (
+                  <div className="padding">
+                    <input
+                      ref={ref3}
+                      type={"file"}
+                      onChange={handlePdfFileChange3}
+                    ></input>
+                    <BsFillTrashFill className="margin" onClick={removeView3} />
+                  </div>
+                ) : null}
               </div>
-            ) : (
+           ) : (
               <div>
                 <input
                   style={{ marginTop: 10 }}
@@ -271,32 +445,31 @@ function App() {
                 ></input>
               </div>
             )}
-          
 
-          <input
+            <input
               style={{ marginTop: 10 }}
               type={"number"}
               placeholder="Number of Sentences"
               onChange={handleNoOfRecords}
             ></input>
 
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: 20,
-            }}
-          >
-            <button
-              onClick={postData}
-              // onClick={startTimer}
-              className="button"
-              type="button"
-              id="button"
-              name="Submit"
+            <div
+              style={{
+                textAlign: "center",
+                marginTop: 20,
+              }}
             >
-              Submit
-            </button>
-          </div>
+              <button
+                onClick={postData}
+                // onClick={startTimer}
+                className="button"
+                type="button"
+                id="button"
+                name="Submit"
+              >
+                Submit
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -338,31 +511,23 @@ function App() {
           </div>
           {response ? (
             <div className="d-flex justify-content-center">
-            <div>
-              <h5 style={{ color: "#5a2e6f" }}>Generative AI Answer</h5>
-            <textarea
-              
-              rows={2}
-              cols={100}
-            >
-              {user[0]}
-            </textarea>
-            </div>
+              <div>
+                <h5 style={{ color: "#5a2e6f" }}>Generative AI Answer</h5>
+                <textarea rows={2} cols={100}>
+                  {user[0]}
+                </textarea>
+              </div>
             </div>
           ) : null}
           {response ? (
             <div className="d-flex justify-content-center">
-            <div>
-              <h5 style={{ color: "#5a2e6f" }}>Fact Check From document</h5>
-            <textarea
-             
-              rows={6}
-              cols={100}
-            >
-              {user[1]}
-            </textarea>
-             </div>
-             </div>
+              <div>
+                <h5 style={{ color: "#5a2e6f" }}>Fact Check From document</h5>
+                <textarea rows={6} cols={100}>
+                  {user[1]}
+                </textarea>
+              </div>
+            </div>
           ) : null}
         </div>
       )}
@@ -377,6 +542,3 @@ function App() {
 }
 
 export default App;
-
-
-sk-2jZrYbH6tEZu7lntZwiIT3BlbkFJm39EFfb3xf234JBNb8trhu
